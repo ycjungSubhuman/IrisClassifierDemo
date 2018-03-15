@@ -1,6 +1,7 @@
 # Created by Jung Yucheol<ycjung@postech.ac.kr>
 import numpy as np
-from scipy.stats import multivariate_normal as norm
+from scipy.stats import multivariate_normal as mvnorm
+from scipy.stats import norm
 import random
 import math
 
@@ -38,6 +39,8 @@ class KMeansCluster():
     def run(self, numIteration=100):
         print ('running K-Means with iteration {}'.format(numIteration))
         for i in range(0, numIteration):
+            self.updateGroups()
+
             sums = np.zeros((self.numCluster, np.shape(self.data)[1]))
             counts = np.zeros(self.numCluster)
             for n in range(0, len(self.data)):
@@ -49,8 +52,6 @@ class KMeansCluster():
                     self.centers[k] = random.choice(self.data).copy()
                     continue
                 self.centers[k] = sums[k] / counts[k]
-
-            self.updateGroups()
         print ('K-means done')
         print ('centers: {}'.format(self.centers))
         print ('groupCounts: {}'.format(self.getGroupCounts()))
@@ -71,7 +72,7 @@ class GaussianMLOptimizer(Pdf):
         pass
 
     def probOf(self, d):
-        return norm.pdf(d, mean=self.mu, cov=self.sigma)
+        return mvnorm.pdf(d, mean=self.mu, cov=self.sigma)
 
 
 class MultipleGaussianEmOptimizer(Pdf):
@@ -105,20 +106,20 @@ class MultipleGaussianEmOptimizer(Pdf):
         return 'MultipleGaussianEmOptimizier'
 
     def probOf(self, d):
-        return sum([self.pis[k]*norm.pdf(d, mean=self.mus[k], cov=self.sigmas[k]) for k in range(0, self.numGaussian)])
+        return sum([self.pis[k]*mvnorm.pdf(d, mean=self.mus[k], cov=self.sigmas[k]) for k in range(0, self.numGaussian)])
 
     def getLogLikelihood(self):
         return sum([math.log(
-            sum([self.pis[k]*norm.pdf(self.data[n], mean=self.mus[k], cov=self.sigmas[k]) for k in range(0, self.numGaussian)])
+            sum([self.pis[k]*mvnorm.pdf(self.data[n], mean=self.mus[k], cov=self.sigmas[k]) for k in range(0, self.numGaussian)])
             ) for n in range(0, len(self.data))])
 
     def updateResponsibility(self):
         for n in range(0, len(self.data)):
             for k in range(0, self.numGaussian):
                 self.resp[n][k] = (
-                        self.pis[k]*norm.pdf(self.data[n], mean=self.mus[k], cov=self.sigmas[k])
+                        self.pis[k]*mvnorm.pdf(self.data[n], mean=self.mus[k], cov=self.sigmas[k])
                         /
-                        sum([self.pis[j]*norm.pdf(self.data[n], mean=self.mus[j], cov=self.sigmas[j])
+                        sum([self.pis[j]*mvnorm.pdf(self.data[n], mean=self.mus[j], cov=self.sigmas[j])
                                 for j in range(0, self.numGaussian)])
                             )
     def almostZero(self, d):
@@ -159,11 +160,17 @@ class MultipleGaussianEmOptimizer(Pdf):
         print('Reached centers : ')
         print(self.mus)
 
-class GaussianKernelDensitiyEstimator(Pdf):
+class GaussianKernelDensityEstimator(Pdf):
     def __init__(self, data, kernelStandardDeviation=1):
         self.h = kernelStandardDeviation
+        self.data = data
+
+    def run(self):
+        pass
 
     def probOf(self, d):
-        pass
+        return sum([norm.pdf((self.data[n]-d).dot(self.data[n]-d), loc=0, scale=self.h)
+            for n in range(0, len(self.data))
+                ]) / len(self.data)
 
 

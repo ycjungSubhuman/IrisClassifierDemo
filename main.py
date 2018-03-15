@@ -41,7 +41,8 @@ if __name__=='__main__':
     elif sys.argv[1] == 'MixtureOfGaussian':
         run(Pdf.MultipleGaussianEmOptimizer)
     elif sys.argv[1] == 'GaussianKDE':
-        raise 'Not Implemented'
+        run(Pdf.GaussianKernelDensityEstimator)
     else:
         print('provided "{}" option does not match any method'.format(sys.argv[1]))
+        print('GaussianML | MixtureOfGaussian | GaussianKDE')
 
