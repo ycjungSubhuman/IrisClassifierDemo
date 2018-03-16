@@ -59,6 +59,8 @@ class KMeansCluster():
 class Pdf():
     def probOf(self, d):
         raise 'Not Implemented'
+    def run(self):
+        raise 'Not Implemented'
 
 class GaussianMLOptimizer(Pdf):
     def __init__(self, data):
@@ -84,7 +86,7 @@ class MultipleGaussianEmOptimizer(Pdf):
 
         # Calculate data max and min(Used for heuristics)
         self.datamax = np.amax(self.data, axis=0)
-        self.datamin = np.amax(self.data, axis=0)
+        self.datamin = np.amin(self.data, axis=0)
 
         # init PIs with group proportion
         self.pis = np.zeros(numGaussian)
@@ -160,16 +162,24 @@ class MultipleGaussianEmOptimizer(Pdf):
         print('Reached centers : ')
         print(self.mus)
 
+
 class GaussianKernelDensityEstimator(Pdf):
-    def __init__(self, data, kernelStandardDeviation=1):
+    def __init__(self, data, kernelStandardDeviation=0.002):
         self.h = kernelStandardDeviation
-        self.data = data
+        self.datamax = np.amax(data)
+        self.datamin = np.amin(data)
+        self.data = [self._normalize(d) for d in data]
+
+    def _normalize(self, d):
+        m = (self.datamin + self.datamax) / 2
+        result = (d - m) / ((self.datamax - self.datamin) * 2)
+        return result
 
     def run(self):
         pass
 
     def probOf(self, d):
-        return sum([norm.pdf((self.data[n]-d).dot(self.data[n]-d), loc=0, scale=self.h)
+        return sum([norm.pdf((self.data[n]-self._normalize(d)).dot(self.data[n]-self._normalize(d)), loc=0, scale=self.h)
             for n in range(0, len(self.data))
                 ]) / len(self.data)
 
