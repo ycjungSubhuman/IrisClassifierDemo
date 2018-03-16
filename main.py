@@ -17,16 +17,27 @@ def splitTrainTest(data, iteration, numChunk):
 if __name__=='__main__':
     if len(sys.argv) < 2:
         print('Provide the method to use as the first argument')
-        print('GaussianML | MixtureOfGaussian | GaussianKDE | KNearest')
+        print('- GaussianML')
+        print('- MixtureOfGaussian')
+        print('- GaussianKDE (optional<kernelSdv> (default = 0.002))')
+        print('- KNearest (optional<K> (default = 1))')
         exit()
     elif sys.argv[1] == 'GaussianML':
         tester = C.GenerativeClassifierTester(Pdf.GaussianMLOptimizer, readData())
     elif sys.argv[1] == 'MixtureOfGaussian':
         tester = C.GenerativeClassifierTester(Pdf.MultipleGaussianEmOptimizer, readData())
     elif sys.argv[1] == 'GaussianKDE':
-        tester = C.GenerativeClassifierTester(Pdf.GaussianKernelDensityEstimator, readData())
+        if (len(sys.argv) > 2):
+            sdv = float(sys.argv[2])
+        else:
+            sdv = 0.002
+        tester = C.GenerativeClassifierTester(Pdf.GaussianKernelDensityEstimator, readData(), sdv)
     elif sys.argv[1] == 'KNearest':
-        tester = C.KNearestClassifierTester(readData())
+        if (len(sys.argv) > 2):
+            k = int(sys.argv[2])
+        else:
+            k = 1
+        tester = C.KNearestClassifierTester(readData(), k)
     else:
         print('provided "{}" option does not match any method'.format(sys.argv[1]))
         print('GaussianML | MixtureOfGaussian | GaussianKDE | KNearest')

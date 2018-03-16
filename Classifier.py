@@ -11,8 +11,12 @@ class Classifier():
         raise 'Not Implemented'
 
 class GenerativeClassifier(Classifier):
-    def __init__(self, pdfBuilderClass, trainSetList):
-        self.pdfBuilders = [pdfBuilderClass(trainSet) for trainSet in trainSetList]
+    def __init__(self, pdfBuilderClass, trainSetList, arg=None):
+        if(arg != None):
+            self.pdfBuilders = [pdfBuilderClass(trainSet, arg) for trainSet in trainSetList]
+        else:
+            self.pdfBuilders = [pdfBuilderClass(trainSet) for trainSet in trainSetList]
+
         for pdfBuilder in self.pdfBuilders:
             pdfBuilder.run()
 
@@ -71,18 +75,27 @@ class ClassifierTester():
         return sum([np.trace(self.confusions[i]) for i in range(0, self.folds)]) / (self.folds * np.sum(self.confusions[0]))
 
 class GenerativeClassifierTester(ClassifierTester):
-    def __init__(self, pdfBuilderClass, classifiedDataList, folds=5):
+    def __init__(self, pdfBuilderClass, classifiedDataList, arg=None, folds=5):
         super().__init__(classifiedDataList, folds)
         self.pdfBuilderClass = pdfBuilderClass
+        self.arg = arg
 
     def _getClassifier(self, trainSet):
-        return GenerativeClassifier(self.pdfBuilderClass, trainSet)
+        if self.arg != None:
+            return GenerativeClassifier(self.pdfBuilderClass, trainSet, self.arg)
+        else:
+            return GenerativeClassifier(self.pdfBuilderClass, trainSet)
+
 
 
 class KNearestClassifierTester(ClassifierTester):
-    def __init__(self, classifiedDataList, folds=5):
+    def __init__(self, classifiedDataList, arg=None, folds=5):
         super().__init__(classifiedDataList, folds)
+        self.arg = arg
 
     def _getClassifier(self, trainSet):
-        return KNearestClassifier(trainSet)
+        if self.arg != None:
+            return KNearestClassifier(trainSet, self.arg)
+        else:
+            return KNearestClassifier(trainSet)
 
