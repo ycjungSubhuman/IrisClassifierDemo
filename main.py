@@ -19,7 +19,7 @@ if __name__=='__main__':
         print('Provide the method to use as the first argument')
         print('- GaussianML')
         print('- MixtureOfGaussian')
-        print('- GaussianKDE (optional<kernelSdv> (default = 0.002))')
+        print('- GaussianKDE (optional<kernelSdv> (default = 0.03))')
         print('- KNearest (optional<K> (default = 1))')
         exit()
     elif sys.argv[1] == 'GaussianML':
@@ -40,7 +40,6 @@ if __name__=='__main__':
         tester = C.KNearestClassifierTester(readData(), k)
     else:
         print('provided "{}" option does not match any method'.format(sys.argv[1]))
-        print('GaussianML | MixtureOfGaussian | GaussianKDE | KNearest')
         exit()
 
     tester.run()
