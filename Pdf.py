@@ -2,6 +2,7 @@
 import numpy as np
 from scipy.stats import multivariate_normal as mvnorm
 from scipy.stats import norm
+from util import normalize
 import random
 import math
 
@@ -171,9 +172,7 @@ class GaussianKernelDensityEstimator(Pdf):
         self.data = [self._normalize(d) for d in data]
 
     def _normalize(self, d):
-        m = (self.datamin + self.datamax) / 2
-        result = (d - m) / ((self.datamax - self.datamin) * 2)
-        return result
+        return normalize(d, self.datamin, self.datamax)
 
     def run(self):
         pass

@@ -1,4 +1,5 @@
 import numpy as np
+from util import normalize, dist
 
 def _splitTrainTest(data, iteration, numChunk):
     chunks = np.split(data, numChunk)
@@ -18,6 +19,27 @@ class GenerativeClassifier(Classifier):
     def classify(self, d):
         return np.argmax(np.array([pdfBuilder.probOf(d) for pdfBuilder in self.pdfBuilders]))
 
+class KNearestClassifier(Classifier):
+    def __init__(self, trainSetList, k=1):
+        self.datamax = np.amax(np.array(trainSetList))
+        self.datamin = np.amin(np.array(trainSetList))
+        self.k = k
+        self.trainSetList = [[self._normalize(row) for row in trainSet] for trainSet in trainSetList]
+
+    def _normalize(self, d):
+        return normalize(d, self.datamin, self.datamax)
+
+    def classify(self, d):
+        normd = self._normalize(d)
+        distanceClassPairs = sorted([(dist(normd,row), i)
+                for i in range(0, len(self.trainSetList))
+                for row in self.trainSetList[i]], key=lambda p: p[0])
+        kNearestPairs = distanceClassPairs[0:self.k]
+        kNearestCounts = np.zeros(len(self.trainSetList))
+        for (_, i) in kNearestPairs:
+            kNearestCounts[i] += 1
+        return np.argmax(kNearestCounts)
+
 
 class ClassifierTester():
     def __init__(self, classifiedDataList, folds=5):
@@ -30,20 +52,8 @@ class ClassifierTester():
             self.trainTestPairs[i] = [_splitTrainTest(d, i, folds) for d in self.classifiedDataList]
 
     def run(self):
-        raise 'Not Implemented'
-    def getConfusionMatrix(self):
-        raise 'Not Implemented'
-    def getPrecision(self):
-        raise 'Not Implemented'
-
-class GenerativeClassifierTester(ClassifierTester):
-    def __init__(self, pdfBuilderClass, classifiedDataList, folds=5):
-        super().__init__(classifiedDataList, folds)
-        self.pdfBuilderClass = pdfBuilderClass
-
-    def run(self):
         for i in range(0, self.folds):
-            classifier = GenerativeClassifier(self.pdfBuilderClass, [trainSet for (trainSet, _) in self.trainTestPairs[i]])
+            classifier = self._getClassifier([trainSet for (trainSet, _) in self.trainTestPairs[i]])
             testSet = [(self.trainTestPairs[i][j][1], j) for j in range(0, self.numClass)]
 
             for (rows, gt) in testSet:
@@ -51,15 +61,28 @@ class GenerativeClassifierTester(ClassifierTester):
                     classOfData = classifier.classify(d)
                     self.confusions[i][classOfData][gt] += 1
 
+    def _getClassifier(self, trainSet):
+        raise 'Not Implemented'
+
     def getConfusionMatrix(self):
         return self.confusions
+
     def getPrecision(self):
         return sum([np.trace(self.confusions[i]) for i in range(0, self.folds)]) / (self.folds * np.sum(self.confusions[0]))
+
+class GenerativeClassifierTester(ClassifierTester):
+    def __init__(self, pdfBuilderClass, classifiedDataList, folds=5):
+        super().__init__(classifiedDataList, folds)
+        self.pdfBuilderClass = pdfBuilderClass
+
+    def _getClassifier(self, trainSet):
+        return GenerativeClassifier(self.pdfBuilderClass, trainSet)
+
 
 class KNearestClassifierTester(ClassifierTester):
     def __init__(self, classifiedDataList, folds=5):
         super().__init__(classifiedDataList, folds)
 
-    def run(self):
-        pass
+    def _getClassifier(self, trainSet):
+        return KNearestClassifier(trainSet)
 
