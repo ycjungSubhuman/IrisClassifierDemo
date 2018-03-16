@@ -30,7 +30,7 @@ if __name__=='__main__':
         if (len(sys.argv) > 2):
             sdv = float(sys.argv[2])
         else:
-            sdv = 0.002
+            sdv = 0.03
         tester = C.GenerativeClassifierTester(Pdf.GaussianKernelDensityEstimator, readData(), sdv)
     elif sys.argv[1] == 'KNearest':
         if (len(sys.argv) > 2):
