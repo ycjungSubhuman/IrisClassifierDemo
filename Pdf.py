@@ -126,7 +126,7 @@ class MultipleGaussianEmOptimizer(Pdf):
                                 for j in range(0, self.numGaussian)])
                             )
     def almostZero(self, d):
-        return np.sqrt(d.dot(d)) < 0.02
+        return np.sqrt(d.dot(d)) < 0.00002
 
     # If a gaussian pdf collapses onto a single datapoint, recover with heuristics
     def tryRecoverCollapse(self):

@@ -7,7 +7,7 @@ import sys
 def readData():
     allData = np.loadtxt('data/iris.data', delimiter=',', usecols=(0,1,2,3))
     assert (len(allData) == 150)
-    return [allData[0:50], allData[50:100], allData[100:150]]
+    return [allData[0:50]/10, allData[50:100]/10, allData[100:150]/10]
 
 def splitTrainTest(data, iteration, numChunk):
     chunks = np.split(data, numChunk)
